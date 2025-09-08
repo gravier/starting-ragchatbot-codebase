@@ -245,6 +245,30 @@ header h1 {
     color: var(--text-secondary);
 }
 
+.sources-content a {
+    color: #64b5f6;
+    text-decoration: none;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8rem;
+    background: rgba(100, 181, 246, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
+    display: inline-block;
+    margin: 0.1rem 0.2rem 0.1rem 0;
+    transition: all 0.2s ease;
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.sources-content a:hover {
+    color: #90caf9;
+    background: rgba(144, 202, 249, 0.15);
+    border-color: rgba(144, 202, 249, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(100, 181, 246, 0.2);
+}
+
 /* Markdown formatting styles */
 .message-content h1,
 .message-content h2,
@@ -600,6 +624,32 @@ details[open] .suggested-header::before {
     font-style: italic;
     text-transform: none;
 }
+
+/* New Chat Button */
+.new-chat-button {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem 0;
+    border: none;
+    background: none;
+    text-align: left;
+    width: 100%;
+    outline: none;
+    transition: color 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.new-chat-button:focus {
+    color: var(--primary-color);
+}
+
+.new-chat-button:hover {
+    color: var(--primary-color);
+}
+
 
 /* Suggested Questions in Sidebar */
 .suggested-items {
