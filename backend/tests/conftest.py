@@ -2,10 +2,12 @@
 
 import os
 import sys
+import tempfile
 from typing import Any, Dict, List
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from fastapi.testclient import TestClient
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -263,3 +265,130 @@ def mock_anthropic_final_response():
     )
     response.stop_reason = "end_turn"
     return response
+
+
+# API Testing Fixtures
+
+@pytest.fixture
+def mock_rag_system():
+    """Mock RAG system for API testing"""
+    rag_system = Mock()
+    
+    # Mock query method
+    def mock_query(query: str, session_id: str = None):
+        return "This is a test response about " + query, [
+            {"course_title": "Test Course", "lesson_number": 1, "lesson_link": "https://example.com/lesson1"}
+        ]
+    
+    rag_system.query.side_effect = mock_query
+    
+    # Mock session manager
+    session_manager = Mock()
+    session_manager.create_session.return_value = "test-session-123"
+    rag_system.session_manager = session_manager
+    
+    # Mock analytics
+    rag_system.get_course_analytics.return_value = {
+        "total_courses": 2,
+        "course_titles": ["Test Course 1", "Test Course 2"]
+    }
+    
+    return rag_system
+
+@pytest.fixture
+def test_client(mock_rag_system):
+    """FastAPI test client with mocked dependencies"""
+    from fastapi import FastAPI
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel
+    from typing import List, Optional, Union, Dict, Any
+    
+    # Create test app without static file mounting
+    test_app = FastAPI(title="Course Materials RAG System (Test)", root_path="")
+    
+    # Add CORS middleware
+    test_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # Pydantic models
+    class QueryRequest(BaseModel):
+        query: str
+        session_id: Optional[str] = None
+
+    class QueryResponse(BaseModel):
+        answer: str
+        sources: List[Union[str, Dict[str, Any]]]
+        session_id: str
+
+    class CourseStats(BaseModel):
+        total_courses: int
+        course_titles: List[str]
+    
+    # API endpoints
+    @test_app.post("/api/query", response_model=QueryResponse)
+    async def query_documents(request: QueryRequest):
+        session_id = request.session_id or mock_rag_system.session_manager.create_session()
+        answer, sources = mock_rag_system.query(request.query, session_id)
+        return QueryResponse(answer=answer, sources=sources, session_id=session_id)
+    
+    @test_app.get("/api/courses", response_model=CourseStats)
+    async def get_course_stats():
+        analytics = mock_rag_system.get_course_analytics()
+        return CourseStats(
+            total_courses=analytics["total_courses"],
+            course_titles=analytics["course_titles"]
+        )
+    
+    @test_app.get("/")
+    async def read_root():
+        return {"message": "RAG System API", "status": "running"}
+    
+    return TestClient(test_app)
+
+@pytest.fixture
+def sample_query_request():
+    """Sample query request data for testing"""
+    return {
+        "query": "What is MCP?",
+        "session_id": None
+    }
+
+@pytest.fixture
+def sample_query_request_with_session():
+    """Sample query request with session ID for testing"""
+    return {
+        "query": "How do I set up MCP?",
+        "session_id": "test-session-456"
+    }
+
+@pytest.fixture
+def expected_query_response():
+    """Expected query response structure for validation"""
+    return {
+        "answer": str,
+        "sources": list,
+        "session_id": str
+    }
+
+@pytest.fixture
+def expected_course_stats():
+    """Expected course stats response structure for validation"""
+    return {
+        "total_courses": int,
+        "course_titles": list
+    }
+
+@pytest.fixture
+def temp_frontend_dir():
+    """Temporary frontend directory for testing static file serving"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a simple index.html for testing
+        index_path = os.path.join(temp_dir, "index.html")
+        with open(index_path, 'w') as f:
+            f.write("<html><body><h1>Test Frontend</h1></body></html>")
+        yield temp_dir
