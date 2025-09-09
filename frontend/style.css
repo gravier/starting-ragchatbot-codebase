@@ -865,14 +865,12 @@ details[open] .suggested-header::before {
     transform: rotate(0deg);
 }
 
-[data-theme="dark"] .theme-toggle .sun-icon,
-:root .theme-toggle .sun-icon {
+[data-theme="dark"] .theme-toggle .sun-icon {
     opacity: 1;
     transform: rotate(0deg);
 }
 
-[data-theme="dark"] .theme-toggle .moon-icon,
-:root .theme-toggle .moon-icon {
+[data-theme="dark"] .theme-toggle .moon-icon {
     opacity: 0;
     transform: rotate(-180deg);
 }
