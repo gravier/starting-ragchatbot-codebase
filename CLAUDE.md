@@ -14,6 +14,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Application serves frontend at `http://localhost:8000`
 - API docs available at `http://localhost:8000/docs`
 
+### Code Quality Tools
+- **Install dev dependencies**: `uv sync --group dev`
+- **Format code**: `./scripts/format.sh` (runs isort + black)
+- **Lint code**: `./scripts/lint.sh` (runs flake8 + mypy)
+- **Run tests**: `./scripts/test.sh` (runs pytest)
+- **Complete quality pipeline**: `./scripts/quality.sh` (format + lint + test)
+
+#### Quality Tool Configuration
+- **Black**: Line length 88, Python 3.13 target
+- **isort**: Black-compatible profile for import sorting
+- **flake8**: Max line 88, ignores E203/W503 for black compatibility
+- **mypy**: Strict type checking with external library overrides
+- **pytest**: Async test support included
+
 ## RAG System Architecture
 
 This is a Retrieval-Augmented Generation (RAG) chatbot system with a tool-based architecture where Claude API uses function calling to search course content when needed.
